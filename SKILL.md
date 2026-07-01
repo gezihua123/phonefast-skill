@@ -1,5 +1,5 @@
 ---
-name: phonefast
+name: phonefast-skill
 version: 1.0.0
 tags: [android, mobile, phone, automation, adb, testing, mcp]
 description: |
