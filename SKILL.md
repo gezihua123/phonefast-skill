@@ -1,6 +1,7 @@
 ---
 name: phonefast
 version: 1.0.0
+tags: [android, mobile, phone, automation, adb, testing, mcp]
 description: |
   Use this skill whenever the user wants to control, view, or automate an Android
   phone/device — including taking screenshots, tapping, swiping, typing text,
