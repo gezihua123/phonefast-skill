@@ -168,3 +168,25 @@ This skill ships with supporting files. Read them as needed:
 | `skills-lock.json` | Registry lock file for `skills.sh` — records the installed source, hash, and paths. |
 
 For benchmarks and why phonefast beats raw ADB, see [references/architecture.md](references/architecture.md). Read it only if you need to understand daemon internals.
+
+---
+
+## Architecture (reference)
+
+For full benchmarks and comparison: [phonefast.md](https://github.com/gezihua123/phonefast/blob/master/phonefast.md)
+
+Key advantages over raw ADB / other tools:
+- **Atomic observe** — screenshot + UI tree in one call (~148ms), no race conditions
+- **Daemon mode** — Unix Socket JSON-RPC, <1ms overhead per command
+- **ImageContent** — MCP mode returns native `image/png`, ~50% less LLM token cost
+- **99.99% reliability** — 12h stress test, 144k operations, auto-recovery
+
+---
+
+## Source & updates
+
+本文件基于 [phonefast 官方 SKILL.md](https://raw.githubusercontent.com/gezihua123/phonefast/master/SKILL.md) 维护。
+
+- **上游地址**: <https://raw.githubusercontent.com/gezihua123/phonefast/master/SKILL.md>
+- **获取最新命令**: 上述地址始终包含最新的 `phonefast` 命令列表、参数说明、延迟数据以及使用场景示例。
+- **更新方式**: 当 `phonefast` 工具更新（新增命令、修改参数、优化流程）时，请参考上游文件同步更新本文件中的命令表格和操作说明。
