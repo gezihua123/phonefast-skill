@@ -335,6 +335,7 @@ After screen-changing actions, run `observe` again to verify the result and get 
 4. **Wait after app launches** — 1–3s before observing.
 5. **Don't hardcode flows** — Read current UI tree and adapt.
 6. **Always use `--daemon`** — Avoids cold start overhead.
+7. **Type 后等待 ~1s** — 输入文字后手机端可能还在处理输入法/动画，立即 observe 可能拿到旧界面。type 之后务必 `sleep 1` 或等待约 1s 再继续操作。
 
 ---
 
