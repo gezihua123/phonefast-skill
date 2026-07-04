@@ -60,7 +60,7 @@ if command -v phonefast >/dev/null 2>&1; then
 else
   echo "→ phonefast not found, installing..."
   curl -fL https://raw.githubusercontent.com/gezihua123/phonefast/master/scripts/install_pkg.sh | bash -s -- --local
-  # 方法二：使用 skill 本地脚本（无需网络）
+  # 方法二：使用 skill 本地脚本（离线安装）
   # bash "$(dirname "$0")/scripts/install_pkg.sh"
   echo "✓ phonefast installed"
 fi
@@ -155,6 +155,16 @@ After screen-changing actions, run `observe` again to verify the result and get 
 
 ---
 
-## Architecture (reference)
+## Bundled files
+
+This skill ships with supporting files. Read them as needed:
+
+| File | Purpose |
+|------|---------|
+| `scripts/install_pkg.sh` | Bootstrapper that fetches the real installer from GitHub. Use when `phonefast` binary is missing. |
+| `scripts/replace_pkg.sh` | Binary replacer — extract a locally-built phonefast binary (from `dist/` or a release archive) and swap it in. Useful during development or offline upgrade. |
+| `references/architecture.md` | Phonefast internals, daemon lifecycle, and why it beats raw ADB. Read when you need architectural context. |
+| `evals/evals.json` | Test cases for benchmarking the skill (8 scenarios covering common phone operations). |
+| `skills-lock.json` | Registry lock file for `skills.sh` — records the installed source, hash, and paths. |
 
 For benchmarks and why phonefast beats raw ADB, see [references/architecture.md](references/architecture.md). Read it only if you need to understand daemon internals.

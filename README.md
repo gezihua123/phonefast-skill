@@ -11,7 +11,8 @@ A [Claude Code skill](https://docs.anthropic.com/en/docs/claude-code/skills) tha
 ```
 ├── SKILL.md               # Skill definition (canonical)
 ├── scripts/
-│   └── install_pkg.sh     # phonefast binary installer (bootstrapper)
+│   ├── install_pkg.sh     # phonefast binary installer (bootstrapper)
+│   └── replace_pkg.sh     # phonefast binary replacer (local build swap)
 ├── references/
 │   └── architecture.md    # phonefast internals (progressive disclosure)
 ├── evals/
