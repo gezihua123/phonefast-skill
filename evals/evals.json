@@ -1,0 +1,61 @@
+{
+  "skill_name": "phonefast-skill",
+  "evals": [
+    {
+      "id": 1,
+      "name": "check-phone-screen",
+      "prompt": "帮我看看手机屏幕上现在有什么",
+      "expected_output": "Takes a screenshot/observe of the Android device and describes what's on screen (apps, UI elements, notifications, etc.)",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "open-wechat-and-send-message",
+      "prompt": "打开微信，给联系人'张三'发一条消息说'明天下午三点见'",
+      "expected_output": "Opens WeChat (com.tencent.mm), waits for it to load, observes the screen, finds the contact 张三, taps to open chat, types the message, finds and taps the send button, confirms the message was sent",
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "scroll-to-bottom",
+      "prompt": "帮我把这个页面滑到底部",
+      "expected_output": "Observes current screen to determine dimensions, performs a swipe gesture from bottom to top (or multiple swipes) to scroll down, observes again to confirm the page has moved",
+      "files": []
+    },
+    {
+      "id": 4,
+      "name": "tap-coordinates",
+      "prompt": "在屏幕上 (500, 800) 的位置点一下",
+      "expected_output": "Executes a tap at coordinates (500, 800) using phonefast tap command, optionally observes the result",
+      "files": []
+    },
+    {
+      "id": 5,
+      "name": "take-screenshot",
+      "prompt": "截个图给我看",
+      "expected_output": "Takes a screenshot using phonefast screenshot command and presents the image to the user",
+      "files": []
+    },
+    {
+      "id": 6,
+      "name": "press-home-and-launch-settings",
+      "prompt": "回到主屏幕，然后打开设置",
+      "expected_output": "Presses the Home key, waits briefly, then launches the Settings app (com.android.settings), observes to confirm",
+      "files": []
+    },
+    {
+      "id": 7,
+      "name": "device-not-connected",
+      "prompt": "看看我手机上的抖音有什么新视频",
+      "expected_output": "Checks adb devices, if no device is connected, asks user to connect the phone via USB/WiFi with debugging enabled. If device is connected, proceeds to open Douyin and observe the screen.",
+      "files": []
+    },
+    {
+      "id": 8,
+      "name": "type-text",
+      "prompt": "在当前的输入框里输入'你好，今天天气真好'",
+      "expected_output": "Observes the screen to find the input field, taps on it, then uses phonefast type_text to type the Chinese text, optionally confirms the text was entered",
+      "files": []
+    }
+  ]
+}

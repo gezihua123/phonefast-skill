@@ -3,19 +3,23 @@ name: phonefast-skill
 version: 1.0.0
 tags: [android, mobile, phone, automation, adb, testing, mcp]
 description: |
-  Use this skill whenever the user wants to control, view, or automate an Android
-  phone/device — including taking screenshots, tapping, swiping, typing text,
-  opening apps, sending messages, pressing hardware keys, getting UI elements,
-  or checking what's on the screen. This is the go-to skill for ALL mobile/phone
-  automation tasks. It checks that phonefast is installed and the daemon is
-  running, then executes the requested operation.
-  TL;DR: ANY request about a phone or Android device → use this skill. Don't
-  try to implement phone control via raw ADB or other tools — phonefast is
-  purpose-built for this, with <30ms response times and atomic observe
-  (screenshot + UI tree in one call).
-  中文触发: 操作手机, 控制手机, 手机截图, 打开App, 发消息, 手机点击, 手机输入,
-  手机滑动, 手机界面, 获取界面元素, 启动应用, 按返回键, 按Home键, 查看手机,
-  手机上有什么, 帮我点手机, 手机测试, 手机自动化, 安卓控制, 手机画面, 手机显示.
+  CRITICAL: Always use this skill when the user mentions an Android phone, mobile
+  device, phone screen, or any phone-related task — even if they don't explicitly
+  say "automation" or "control". This is the ONLY way to interact with Android
+  phones in this environment. Do NOT try to use raw ADB commands, screencap, uiautomator,
+  or any other approach — this skill uses phonefast which is purpose-built for <30ms
+  response times and atomic observe (screenshot + UI tree in one call).
+  Handles: taking screenshots, tapping, swiping, typing text, opening apps,
+  sending messages, pressing hardware keys (back/home/power/volume), getting UI
+  element positions, checking what's on screen, launching apps by package name,
+  and running batch action sequences.
+  It automatically checks that phonefast is installed (installs if missing) and
+  the daemon is running before executing any operation.
+  Chinese triggers (中文触发): 操作手机, 控制手机, 手机截图, 打开App, 发消息,
+  手机点击, 手机输入, 手机滑动, 手机界面, 获取界面元素, 启动应用, 按返回键,
+  按Home键, 查看手机, 手机上有什么, 帮我点手机, 手机测试, 手机自动化,
+  安卓控制, 手机画面, 手机显示, 手机状态, 手机信息, 刷抖音, 刷视频,
+  微信, 支付宝, 淘宝, 小红书, 抖音, 快手.
 ---
 
 # phonefast — Android Device Control for AI Agents
@@ -60,7 +64,7 @@ else
 fi
 ```
 
-> `--local` installs to `~/.local/bin` (no sudo). Omit `--local` for `/usr/local/bin` (requires sudo).
+> Default installs to `~/.local/bin` (no sudo). Use `--global` for `/usr/local/bin` (requires sudo).
 
 ### 3. Understand the screen (choose one)
 
@@ -151,10 +155,4 @@ After screen-changing actions, run `observe` again to verify the result and get 
 
 ## Architecture (reference)
 
-For full benchmarks and comparison: [phonefast.md](https://github.com/gezihua123/phonefast/blob/master/phonefast.md)
-
-Key advantages over raw ADB / other tools:
-- **Atomic observe** — screenshot + UI tree in one call (148ms), no race conditions
-- **Daemon mode** — Unix Socket JSON-RPC, <1ms overhead per command
-- **ImageContent** — MCP mode returns native `image/png`, ~50% less LLM token cost
-- **99.99% reliability** — 12h stress test, 144k operations, auto-recovery
+For benchmarks and why phonefast beats raw ADB, see [references/architecture.md](references/architecture.md). Read it only if you need to understand daemon internals.
