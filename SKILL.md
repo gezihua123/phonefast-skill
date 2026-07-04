@@ -60,6 +60,8 @@ if command -v phonefast >/dev/null 2>&1; then
 else
   echo "→ phonefast not found, installing..."
   curl -fL https://raw.githubusercontent.com/gezihua123/phonefast/master/scripts/install_pkg.sh | bash -s -- --local
+  # 方法二：使用 skill 本地脚本（无需网络）
+  # bash "$(dirname "$0")/scripts/install_pkg.sh"
   echo "✓ phonefast installed"
 fi
 ```
