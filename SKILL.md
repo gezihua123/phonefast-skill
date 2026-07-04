@@ -15,11 +15,22 @@ description: |
   and running batch action sequences.
   It automatically checks that phonefast is installed (installs if missing) and
   the daemon is running before executing any operation.
-  Chinese triggers (中文触发): 操作手机, 控制手机, 手机截图, 打开App, 发消息,
-  手机点击, 手机输入, 手机滑动, 手机界面, 获取界面元素, 启动应用, 按返回键,
-  按Home键, 查看手机, 手机上有什么, 帮我点手机, 手机测试, 手机自动化,
-  安卓控制, 手机画面, 手机显示, 手机状态, 手机信息, 刷抖音, 刷视频,
-  微信, 支付宝, 淘宝, 小红书, 抖音, 快手.
+  Trigger keywords: 操作手机, 控制手机, 手机截图, 手机自动化, 打开App, 发消息,
+  手机屏幕, 安卓手机, 安卓控制, 手机点击, 自动点击, 手机输入, 手机滑动,
+  手机测试, 手机调试, 手机UI, 手机界面, 获取界面元素, 启动应用, 按返回键,
+  按Home键, 手机助手, AI手机, 手机大脑, 手机agent, 手机远程控制, 自动化测试,
+  app测试, 查看手机, 看看手机, 手机上有什么, 手机当前界面, 手机画面, 手机显示,
+  手机操作, 手机执行, 帮我点手机, 帮我操作手机, 手机批处理, 手机批量操作,
+  电话fast, phonefast, phone fast, android control, android automation,
+  mobile automation, phone automation, device automation, screenshot android,
+  screenshot phone, tap on phone, click on screen, swipe on device, type on phone,
+  type text android, launch app android, observe phone screen,
+  phone screen analysis, UI analysis android, android testing,
+  android agent, mobile agent, phone agent, android debug, adb automation,
+  scrcpy, mobile testing, app testing, phone MCP, android MCP, mobile MCP,
+  control my phone, see my phone, what's on my phone, interact with phone,
+  phone tool.
+  中文触发: 微信, 支付宝, 淘宝, 小红书, 抖音, 快手, 刷抖音, 刷视频.
 ---
 
 # phonefast — Android Device Control for AI Agents
@@ -32,7 +43,7 @@ a daemon-based tool providing <30ms response time for mobile operations.
 ```
 1. Check device connection (adb)
 2. Ensure phonefast binary is ready
-3. Understand the screen (observe / screenshot / get_ui_elements)
+3. Understand the screen (observe / screenshot / ui)
 4. Execute action (tap / swipe / type / key / launch)
 5. Confirm result (observe again if needed)
 ```
@@ -66,7 +77,7 @@ else
 fi
 ```
 
-> Default installs to `~/.local/bin` (no sudo). Use `--global` for `/usr/local/bin` (requires sudo).
+> `--local` installs to `~/.local/bin` (no sudo). Omit `--local` for `/usr/local/bin` (requires sudo).
 
 ### 3. Understand the screen (choose one)
 
@@ -74,12 +85,12 @@ fi
 |------|---------|---------|
 | Both visual + element positions | `phonefast --daemon observe` | ~148ms |
 | Visual only (show user) | `phonefast --daemon screenshot <path>` | ~167ms |
-| Elements only (coordinates/text) | `phonefast --daemon get_ui_elements` | ~191ms |
+| Elements only (coordinates/text) | `phonefast --daemon ui` | ~191ms |
 
 **When to use each:**
 - `observe` → New/unknown screen, need to locate elements, confirm action result
 - `screenshot` → User asked for an image, or you just need a quick visual check
-- `get_ui_elements` → You already know the layout, just need updated coordinates or find a specific element
+- `ui` → You already know the layout, just need updated coordinates or find a specific element
 - **Skip all** if user gave exact coordinates or a system command (back/home/key)
 
 ### 4. Execute action
@@ -88,14 +99,14 @@ fi
 |---------|---------|---------|
 | Tap at coordinates | `phonefast --daemon tap <x> <y>` | ~30ms |
 | Swipe | `phonefast --daemon swipe <x1> <y1> <x2> <y2> <dur_ms>` | ~326ms |
-| Type text | `phonefast --daemon type_text "<text>"` | ~13ms |
+| Type text | `phonefast --daemon type "<text>"` | ~13ms |
 | Press Back | `phonefast --daemon back` | ~20ms |
 | Press Home | `phonefast --daemon home` | ~29ms |
-| Press a key | `phonefast --daemon press_key <keycode_name>` | ~30ms |
-| Launch app | `phonefast --daemon launch_app <package>` | ~11ms |
+| Press a key | `phonefast --daemon key <keycode_name>` | ~30ms |
+| Launch app | `phonefast --daemon launch <package>` | ~11ms |
 | Check daemon | `phonefast --daemon status` | ~1ms |
-| Stop daemon | `phonefast stop` | — |
-| Show version | `phonefast version` | — |
+| Stop daemon | `phonefast daemon --stop` | — |
+| Show version | `phonefast --version` | — |
 | Start MCP server (SSE) | `phonefast serve` | — |
 | Start MCP server (STDIO) | `phonefast serve --transport stdio` | — |
 
@@ -104,7 +115,7 @@ fi
 
 **Batch execution** (for known sequences):
 ```bash
-phonefast run '[{"action": "tap", "x": 300, "y": 500}, {"action": "wait", "duration": 500}]'
+phonefast run '[{"action": "tap", "x": 300, "y": 500}, {"action": "wait", "duration_ms": 500}]'
 ```
 
 ### 5. Confirm (if needed)
@@ -116,15 +127,15 @@ After screen-changing actions, run `observe` again to verify the result and get 
 ## Scenario examples
 
 **"看看手机"** → `screenshot` → describe screen to user
-**"打开微信"** → `launch_app com.tencent.mm` → wait 2s → `observe`
-**"发消息给张三说'明天见'"** → `observe` → find 张三 contact → tap → `observe` → find input → tap → `type_text "明天见"` → `observe` → find send → tap
+**"打开微信"** → `launch com.tencent.mm` → wait 2s → `observe`
+**"发消息给张三说'明天见'"** → `observe` → find 张三 contact → tap → `observe` → find input → tap → `type "明天见"` → `observe` → find send → tap
 **"滑到底部"** → `observe` → `swipe 540 2000 540 400 500` → `observe`
 
 ---
 
 ## Key rules
 
-1. **Choose the right info command** — `observe` for new/unknown screens, `screenshot`/`get_ui_elements` when you only need one, skip when coordinates are known.
+1. **Choose the right info command** — `observe` for new/unknown screens, `screenshot`/`ui` when you only need one, skip when coordinates are known.
 2. **Re-observe after actions** — Confirm the screen changed as expected.
 3. **Calculate tap center** — From bounds: `(left+right)/2, (top+bottom)/2`.
 4. **Wait after app launches** — 1–3s before observing.
@@ -142,7 +153,7 @@ After screen-changing actions, run `observe` again to verify the result and get 
 | `daemon not running` | `phonefast daemon` |
 | Device shows "unauthorized" | User must accept RSA prompt on phone |
 | `observe` timeout | Retry once; if persists, restart daemon |
-| `launch_app` fails | Wrong package — ask user or suggest common ones |
+| `launch` fails | Wrong package — ask user or suggest common ones |
 | Tap succeeds but no change | Wrong coords — re-observe and recalculate |
 
 ---
@@ -150,8 +161,8 @@ After screen-changing actions, run `observe` again to verify the result and get 
 ## Output interpretation
 
 - **`observe`** → Image + structured UI tree. Analyze for screen context, find elements by `text`, `bounds`, `clickable`, `resource-id`.
-- **`get_ui_elements`** → XML with `bounds=[l,t,r,b]`, `text`, `content-desc`, `clickable`, `class`.
-- **`screenshot <path>`** → Saved to path. `screenshot -` → base64 stdout.
+- **`ui`** → Elements with `bounds=[l,t,r,b]`, `text`, `content-desc`, `clickable`, `class`.
+- **`screenshot [file]`** → Saved to file. `screenshot` (no args) → base64 data URI to stdout.
 
 ---
 
