@@ -1,251 +1,89 @@
 #!/usr/bin/env bash
 # ===========================================================================
-# phonefast Package Installer
+# phonefast Package Installer (Bootstrapper)
 # ===========================================================================
-# 基于 install.md 中的发布链接，自动检测系统架构并下载安装 phonefast 预编译包。
+# 每次运行实时从 phonefast 仓库拉取最新的安装脚本，避免在 skill 包中
+# 维护副本。确保安装逻辑始终与 phonefast 官方一致。
 #
-# 用法:
-#   bash scripts/install_pkg.sh                    # 安装到 ~/.local/bin
-#   bash scripts/install_pkg.sh --global           # 安装到 /usr/local/bin
-#   bash scripts/install_pkg.sh --version 1.0.1    # 指定版本
-#   bash scripts/install_pkg.sh --dry-run          # 仅打印信息，不安装
-#   bash scripts/install_pkg.sh --help             # 显示帮助
-#
-# 环境变量:
-#   VERSION       - 版本号 (默认: 1.0.1)
-#   INSTALL_DIR   - 安装目录 (优先级高于 --local)
-#   GITHUB_MIRROR - GitHub 镜像地址 (默认: https://github.com)
+# 来源: https://raw.githubusercontent.com/gezihua123/phonefast/master/scripts/install_pkg.sh
 # ===========================================================================
 
 set -euo pipefail
 
-# ── 颜色 ────────────────────────────────────────────────────────────────────
+RAW_URL="https://raw.githubusercontent.com/gezihua123/phonefast/master/scripts/install_pkg.sh"
+TMP_SCRIPT=""
+
+cleanup() {
+  if [ -n "$TMP_SCRIPT" ] && [ -f "$TMP_SCRIPT" ]; then
+    rm -f "$TMP_SCRIPT"
+  fi
+}
+trap cleanup EXIT
+
+# ── 输出函数（在下载真正脚本前自包含） ──────────────────────────────────────
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; CYAN='\033[0;36m'; NC='\033[0m'
 info()  { echo -e "${GREEN}[✓]${NC} $*"; }
 warn()  { echo -e "${YELLOW}[!]${NC} $*"; }
 error() { echo -e "${RED}[✗]${NC} $*" >&2; exit 1; }
 step()  { echo -e "${CYAN}::${NC} $*"; }
 
-# ── 默认配置 ─────────────────────────────────────────────────────────────────
-REPO="gezihua123/phonefast"
-VERSION="${VERSION:-1.0.1}"
-GITHUB_MIRROR="${GITHUB_MIRROR:-https://github.com}"
-BASE_URL="${GITHUB_MIRROR}/${REPO}/releases/download/${VERSION}"
+# ── 检测 curl / wget ──────────────────────────────────────────────────────────
+has_curl=false; has_wget=false
+command -v curl >/dev/null 2>&1 && has_curl=true
+command -v wget >/dev/null 2>&1 && has_wget=true
 
-# ── 帮助 ─────────────────────────────────────────────────────────────────────
-show_help() {
-  cat <<EOF
-phonefast Package Installer — 自动下载并安装 phonefast 预编译包
+if [ "$has_curl" = false ] && [ "$has_wget" = false ]; then
+  error "需要 curl 或 wget 来下载安装脚本"
+fi
 
-用法: bash scripts/install_pkg.sh [选项]
-
-选项:
-  --local       安装到 ~/.local/bin（默认，无需 sudo）
-  --global      安装到 /usr/local/bin（需 sudo）
-  --version V   指定版本号 (默认: 1.0.1)
-  --dry-run     只检测系统信息，不执行安装
-  --help        显示本帮助
-
-环境变量:
-  VERSION       版本号 (默认: 1.0.1)
-  INSTALL_DIR   安装目录 (优先级高于 --local)
-  GITHUB_MIRROR GitHub 镜像地址
-
-示例:
-  bash scripts/install_pkg.sh
-  bash scripts/install_pkg.sh --local
-  VERSION=1.0.1 bash scripts/install_pkg.sh
-EOF
+# 如果用户传了 --help 且只想看帮助，直接显示而不联网
+if [[ "${1:-}" == "--help" ]] || [[ "${1:-}" == "-h" ]]; then
+  # 尝试下载远程帮助，失败则回退本地信息
+  echo "phonefast Package Installer (Bootstrapper)"
+  echo ""
+  echo "从 ${RAW_URL} 实时拉取安装脚本并执行。"
+  echo ""
+  echo "支持 install_pkg.sh 的所有参数，参见:"
+  echo "  ${RAW_URL}"
+  echo ""
+  echo "用法: bash scripts/install_pkg.sh [选项]"
+  echo ""
+  echo "选项 (由远程脚本处理):"
+  echo "  --local       安装到 ~/.local/bin"
+  echo "  --global      安装到 /usr/local/bin"
+  echo "  --version V   指定版本号"
+  echo "  --dry-run     仅检测系统信息"
+  echo "  --help        显示本帮助"
+  echo ""
+  echo "环境变量:"
+  echo "  VERSION       版本号"
+  echo "  INSTALL_DIR   安装目录"
+  echo "  GITHUB_MIRROR GitHub 镜像地址"
   exit 0
-}
+fi
 
-# ── 系统检测 ─────────────────────────────────────────────────────────────────
-detect_platform() {
-  local os arch
+# ── 下载安装脚本 ──────────────────────────────────────────────────────────────
+step "从 phonefast 仓库拉取安装脚本..."
+TMP_SCRIPT=$(mktemp)
 
-  # 检测操作系统
-  case "$(uname -s)" in
-    Darwin)  os="darwin"  ;;
-    Linux)   os="linux"   ;;
-    CYGWIN*|MINGW*|MSYS*) os="windows" ;;
-    *)       error "不支持的操作系统: $(uname -s)" ;;
-  esac
+if [ "$has_curl" = true ]; then
+  curl -fsSL --retry 3 --connect-timeout 10 "$RAW_URL" -o "$TMP_SCRIPT"
+else
+  wget -q --retry-connrefused --timeout=10 "$RAW_URL" -O "$TMP_SCRIPT"
+fi
 
-  # 检测架构
-  case "$(uname -m)" in
-    x86_64|amd64) arch="amd64" ;;
-    aarch64|arm64) arch="arm64" ;;
-    *) error "不支持的架构: $(uname -m)" ;;
-  esac
+if [ ! -s "$TMP_SCRIPT" ]; then
+  error "下载安装脚本失败\n      ${RAW_URL}\n      请检查网络连接"
+fi
 
-  # macOS arm64 不兼容 x86_64
-  if [ "$os" = "darwin" ] && [ "$arch" = "amd64" ]; then
-    # 检测是否通过 Rosetta 运行
-    if [ "$(sysctl -n sysctl.proc_translated 2>/dev/null)" = "1" ]; then
-      warn "通过 Rosetta 运行，建议下载 arm64 版本"
-      arch="arm64"
-    fi
-  fi
+# ── 验证为合法 shell 脚本 ─────────────────────────────────────────────────────
+if ! head -1 "$TMP_SCRIPT" | grep -qE '^#!/usr/bin/env bash|^#!/bin/bash|^#!/bin/sh'; then
+  error "下载的文件不是有效的 shell 脚本"
+fi
 
-  # Windows 下检查是否 64 位
-  if [ "$os" = "windows" ] && [ "$arch" != "amd64" ]; then
-    error "Windows 仅支持 amd64 架构"
-  fi
+info "拉取成功 ($(du -h "$TMP_SCRIPT" | cut -f1))"
 
-  echo "$os" "$arch"
-}
-
-# ── 下载文件 ─────────────────────────────────────────────────────────────────
-download_file() {
-  local url="$1"
-  local output="$2"
-  local desc="$3"
-
-  step "下载 ${desc}..."
-
-  if command -v curl >/dev/null 2>&1; then
-    curl -fsSL --retry 3 --connect-timeout 10 "$url" -o "$output"
-  elif command -v wget >/dev/null 2>&1; then
-    wget -q --retry-connrefused --timeout=10 "$url" -O "$output"
-  else
-    error "需要 curl 或 wget 来下载文件"
-  fi
-
-  if [ ! -f "$output" ] || [ ! -s "$output" ]; then
-    error "下载失败: ${url}\n      请检查网络连接，或尝试设置 GITHUB_MIRROR 使用镜像"
-  fi
-
-  local size
-  size=$(du -h "$output" | cut -f1)
-  info "下载完成: ${size}"
-}
-
-# ── 主流程 ───────────────────────────────────────────────────────────────────
-main() {
-  local mode="local"
-  local dry_run=false
-
-  # 解析参数
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      --local)   mode="local";   shift ;;
-      --global)  mode="global";  shift ;;
-      --version) VERSION="$2";   shift 2 ;;
-      --dry-run) dry_run=true;   shift ;;
-      --help|-h) show_help ;;
-      *)         warn "未知选项: $1"; shift ;;
-    esac
-  done
-  BASE_URL="${GITHUB_MIRROR}/${REPO}/releases/download/${VERSION}"
-
-  # 检测平台
-  read -r os arch <<< "$(detect_platform)"
-  local filename="phonefast-${VERSION}-${os}-${arch}.tar.gz"
-  local download_url="${BASE_URL}/${filename}"
-
-  echo ""
-  echo "╔══════════════════════════════════════════════════════════════╗"
-  echo "║              phonefast ${VERSION}  安装程序              ║"
-  echo "╚══════════════════════════════════════════════════════════════╝"
-  echo ""
-  info "系统:    ${os} / ${arch}"
-  info "版本:    ${VERSION}"
-  info "下载源:  ${download_url}"
-
-  if [ "$dry_run" = true ]; then
-    echo ""
-    info "Dry-run 模式，未执行任何操作。"
-    echo ""
-    echo "  下载链接:   ${download_url}"
-    echo "  包文件名:   ${filename}"
-    return 0
-  fi
-
-  # 确定安装目录
-  local install_dir
-  if [ -n "${INSTALL_DIR:-}" ]; then
-    install_dir="$INSTALL_DIR"
-  elif [ "$mode" = "local" ]; then
-    install_dir="$HOME/.local/bin"
-  else
-    install_dir="/usr/local/bin"
-  fi
-
-  info "安装目录: ${install_dir}"
-
-  # 创建临时目录
-  local tmp_dir
-  tmp_dir=$(mktemp -d)
-  local pkg_path="${tmp_dir}/${filename}"
-
-  # ── 下载 ─────────────────────────────────────────────────────────────
-  download_file "$download_url" "$pkg_path" "phonefast ${VERSION} 发布包"
-
-  # ── 解压 ─────────────────────────────────────────────────────────────
-  step "解压发布包..."
-  tar -xzf "$pkg_path" -C "$tmp_dir"
-  info "解压完成"
-
-  # ── 安装二进制 ───────────────────────────────────────────────────────
-  local bin_src="${tmp_dir}/phonefast-${os}-${arch}"
-  if [ "$os" = "windows" ]; then
-    bin_src="${tmp_dir}/phonefast-${os}-${arch}.exe"
-  fi
-
-  if [ ! -f "$bin_src" ]; then
-    # 尝试不带架构后缀的二进制名
-    bin_src="${tmp_dir}/phonefast"
-    if [ "$os" = "windows" ]; then
-      bin_src="${tmp_dir}/phonefast.exe"
-    fi
-  fi
-
-  if [ ! -f "$bin_src" ]; then
-    error "解压后未找到 phonefast 二进制文件:\n      $(ls -la "${tmp_dir}" 2>/dev/null | head -20)"
-  fi
-
-  step "安装到 ${install_dir}..."
-  mkdir -p "$install_dir"
-  cp "$bin_src" "${install_dir}/phonefast"
-  chmod +x "${install_dir}/phonefast"
-  info "二进制已安装: ${install_dir}/phonefast"
-
-  # 验证安装
-  if command -v "${install_dir}/phonefast" >/dev/null 2>&1 || [ -x "${install_dir}/phonefast" ]; then
-    info "安装成功!"
-    echo ""
-    "${install_dir}/phonefast" --help 2>/dev/null || "${install_dir}/phonefast" 2>&1 | head -5 || true
-  fi
-
-  # ── PATH 提示 ────────────────────────────────────────────────────────
-  if ! command -v phonefast >/dev/null 2>&1; then
-    warn "phonefast 不在 PATH 中，请将以下目录加入 PATH:"
-    warn "  export PATH=\"${install_dir}:\$PATH\""
-    if [ "$mode" = "local" ]; then
-      echo ""
-      echo "  或运行:"
-      echo "    echo 'export PATH=\"\$HOME/.local/bin:\$PATH\"' >> ~/.zshrc"
-      echo "    source ~/.zshrc"
-    fi
-  fi
-
-  # ── 清理临时文件 ─────────────────────────────────────────────────────
-  rm -rf "$tmp_dir"
-
-  echo ""
-  echo "╔══════════════════════════════════════════════════════════════╗"
-  echo "║         🎉 phonefast ${VERSION} 安装完成！              ║"
-  echo "╚══════════════════════════════════════════════════════════════╝"
-  echo ""
-  echo "  运行以下命令开始使用:"
-  echo "    phonefast --help"
-  echo ""
-  echo "  连接设备:"
-  echo "    phonefast daemon"
-  echo ""
-  echo "  MCP 模式:"
-  echo "    phonefast serve"
-  echo ""
-}
-
-main "$@"
+# ── 执行真正的安装脚本，透传所有参数 ─────────────────────────────────────────
+step "执行安装..."
+echo ""
+bash "$TMP_SCRIPT" "$@"
