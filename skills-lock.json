@@ -4,7 +4,7 @@
     "phonefast": {
       "source": "gezihua123/phonefast-skill",
       "sourceType": "github",
-      "skillPath": "skills/phonefast/SKILL.md",
+      "skillPath": "SKILL.md",
       "computedHash": "e9529c76fcee2fe1ebbf33882646d45cd277c3348595a369331acb13114dac26"
     }
   }

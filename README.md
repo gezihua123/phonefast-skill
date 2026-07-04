@@ -9,17 +9,14 @@ A [Claude Code skill](https://docs.anthropic.com/en/docs/claude-code/skills) tha
 ## Files
 
 ```
-├── skills/
-│   └── phonefast/                 # Skill root (npx skills add 从此目录拉取)
-│       ├── SKILL.md               # Skill definition (canonical)
-│       ├── scripts/
-│       │   └── install_pkg.sh     # phonefast binary installer (bootstrapper)
-│       ├── references/
-│       │   └── architecture.md    # phonefast internals (progressive disclosure)
-│       └── evals/
-│           └── evals.json         # Test cases for skill evaluation
-├── skills-lock.json               # Registry lock for skills.sh
-├── .agents/skills/phonefast/      # Discovery pointer (alias)
+├── SKILL.md               # Skill definition (canonical)
+├── scripts/
+│   └── install_pkg.sh     # phonefast binary installer (bootstrapper)
+├── references/
+│   └── architecture.md    # phonefast internals (progressive disclosure)
+├── evals/
+│   └── evals.json         # Test cases for skill evaluation
+├── skills-lock.json       # Registry lock for skills.sh
 └── README.md
 ```
 
